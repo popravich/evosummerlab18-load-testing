@@ -1,0 +1,117 @@
+containers:
+  python:
+    setup:
+    - !Ubuntu bionic
+    - !PipConfig
+      dependencies: true
+    - !Py3Install
+      - flask
+      - aiohttp
+      - locust
+      - gunicorn
+      - setuptools
+    environ:
+      LANG: en_US.UTF-8
+      LC_ALL: en_US.UTF-8
+      PYTHONIOENCODING: UTF-8
+
+  tools:
+    setup:
+    - !Ubuntu bionic
+    - !BuildDeps [git, build-essential, libssl-dev, zlib1g-dev]
+    - !Install [apache2-utils, time]
+    - !GitInstall
+      url: https://github.com/wg/wrk
+      script: make && cp wrk /usr/bin/wrk
+    - !GitInstall
+      url: https://github.com/giltene/wrk2
+      script: make && cp wrk /usr/bin/wrk2
+
+commands:
+  flask: !Command
+    description: Run sample Flask application
+    container: python
+    work-dir: flask
+    environ:
+      FLASK_APP: sample.py
+    run:
+    - flask
+    - run
+    - -h
+    - localhost
+    - -p
+    - 5000
+  flask-gunicorn: !Command
+    description: Run sample Flask application with Gunicorn
+    container: python
+    work-dir: flask
+    run:
+    - gunicorn
+    - --threads
+    - 6
+    - -b
+    - 127.0.0.1:5000
+    - sample:app
+
+  aiohttp: !Command
+    description: Run sample aiohttp application
+    container: python
+    work-dir: aiohttp
+    run:
+    - python3
+    - -m
+    - aiohttp.web
+    - -H
+    - localhost
+    - -P 5000
+    - sample:init
+
+  ab: !Command
+    description: Run ab
+    container: tools
+    run:
+    - ab
+  wrk: !Command
+    description: Run wrk
+    container: tools
+    run:
+    - wrk
+  wrk2: !Command
+    description: Run wrk2
+    container: tools
+    run:
+    - wrk2
+  locust: !Command
+    description: Run Locust
+    container: python
+    work-dir: locust
+    run:
+    - locust
+    - --host
+    - http://localhost:5000
+    - --locustfile
+    - sample_scenario
+
+  bench: !Command
+    prerequisites:
+    - _ab
+    - _wrk
+    - _wrk2
+    container: tools
+    run: "true"
+  bench2: !Command
+    prerequisites:
+    - _wrk
+    - _wrk2
+    container: tools
+    run: "true"
+
+  _ab: !Command
+    container: tools
+    run: ab -n 10000 -c ${CONN:-100} http://localhost:5000/${URI}
+  _wrk: !Command
+    container: tools
+    run: wrk -c ${CONN:-100} -t4 -d ${DUR:-10s} http://localhost:5000/${URI}
+  _wrk2: !Command
+    container: tools
+    run: wrk2 -c ${CONN:-100} -t 4 -d ${DUR:-10s} -R ${RPS:-1000} http://localhost:5000/${URI}
