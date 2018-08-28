@@ -10,6 +10,7 @@ containers:
       - locust
       - gunicorn
       - setuptools
+      - vmprof
     environ:
       LANG: en_US.UTF-8
       LC_ALL: en_US.UTF-8
@@ -65,6 +66,45 @@ commands:
     - localhost
     - -P 5000
     - sample:init
+  aiohttp-socket: !Supervise
+    description: Run 4 instances of aiohttp app bound to the same address.
+    children:
+      inst1: !Command
+        container: python
+        work-dir: aiohttp
+        run:
+        - python3
+        - -m
+        - sample
+        - --profile
+        - /work/inst1.vmprof
+      inst2: !Command
+        container: python
+        work-dir: aiohttp
+        run:
+        - python3
+        - -m
+        - sample
+        - --profile
+        - /work/inst2.vmprof
+      inst3: !Command
+        container: python
+        work-dir: aiohttp
+        run:
+        - python3
+        - -m
+        - sample
+        - --profile
+        - /work/inst3.vmprof
+      inst4: !Command
+        container: python
+        work-dir: aiohttp
+        run:
+        - python3
+        - -m
+        - sample
+        - --profile
+        - /work/inst4.vmprof
 
   ab: !Command
     description: Run ab

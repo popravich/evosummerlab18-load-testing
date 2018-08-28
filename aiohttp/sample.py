@@ -1,5 +1,6 @@
 import asyncio
 import json
+import vmprof
 from aiohttp import web
 
 
@@ -41,3 +42,32 @@ def init(argv):
     app.router.add_get('/lock/fast', lock_fast)
     app.router.add_get('/lock/slow', lock_slow)
     return app
+
+
+if __name__ == '__main__':
+    import socket as S
+    import argparse
+    import pathlib
+
+    ap = argparse.ArgumentParser()
+    ap.add_argument('--profile', default=None, type=pathlib.Path,
+                    help="Enable vmprof and write profile into specified file")
+    opts = ap.parse_args()
+
+    def run_on_shared_socket():
+        with S.socket(S.AF_INET, S.SOCK_STREAM | S.SOCK_NONBLOCK) as sock:
+            sock.setsockopt(S.SOL_SOCKET, S.SO_REUSEADDR, 1)
+            sock.setsockopt(S.SOL_SOCKET, S.SO_REUSEPORT, 1)
+            sock.bind(('127.0.0.1', 5000))
+            app = init(None)
+            web.run_app(app, sock=sock)
+
+    if opts.profile is not None:
+        with opts.profile.open('w+b') as f:
+            vmprof.enable(f.fileno())
+            try:
+                run_on_shared_socket()
+            finally:
+                vmprof.disable()
+    else:
+        run_on_shared_socket()

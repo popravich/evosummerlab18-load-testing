@@ -21,5 +21,3 @@ class Locks(TaskSet):
 
 class WebsiteUser(HttpLocust):
     task_set = Locks
-    # min_wait = 5000
-    # max_wait = 15000
