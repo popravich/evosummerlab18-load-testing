@@ -133,6 +133,7 @@ commands:
     - sample_scenario
 
   bench: !Command
+    description: Run a set of tools ab/wrk/wrk2 one after other
     prerequisites:
     - _ab
     - _wrk
@@ -140,6 +141,7 @@ commands:
     container: tools
     run: "true"
   bench2: !Command
+    description: Run a set of tools wrk/wrk2 one after other
     prerequisites:
     - _wrk
     - _wrk2
