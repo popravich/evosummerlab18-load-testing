@@ -114,4 +114,4 @@ commands:
     run: wrk -c ${CONN:-100} -t4 -d ${DUR:-10s} http://localhost:5000/${URI}
   _wrk2: !Command
     container: tools
-    run: wrk2 -c ${CONN:-100} -t 4 -d ${DUR:-10s} -R ${RPS:-1000} http://localhost:5000/${URI}
+    run: wrk2 -c ${CONN:-100} -t4 -d ${DUR:-10s} -R ${RPS:-1000} http://localhost:5000/${URI}

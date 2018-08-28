@@ -14,7 +14,7 @@ class Locks(TaskSet):
     def fast(self):
         self.client.get('/lock/fast')
 
-    @task(7)
+    @task(3)
     def slow(self):
         self.client.get('/lock/slow')
 
